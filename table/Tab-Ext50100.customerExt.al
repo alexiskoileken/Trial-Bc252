@@ -1,0 +1,14 @@
+/// <summary>
+/// TableExtension customerExt (ID 50100) extends Record Customer.
+/// </summary>
+tableextension 50100 customerExt extends Customer
+{
+    fields
+    {
+        field(50100; "Ai model"; Enum "AI Models")
+        {
+            Caption = 'Ai model';
+            DataClassification = ToBeClassified;
+        }
+    }
+}
