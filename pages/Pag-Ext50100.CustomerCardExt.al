@@ -13,6 +13,14 @@ pageextension 50100 CustomerCardExt extends "Customer Card"
                 ToolTip = 'Select the AI model to use for this customer.';
             }
         }
+        addlast("General")
+        {
+            field("Customer Type"; Rec."Customer Type")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Select the type of customer.';
+            }
+        }
     }
     actions
     {

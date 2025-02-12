@@ -10,5 +10,10 @@ tableextension 50100 customerExt extends Customer
             Caption = 'Ai model';
             DataClassification = ToBeClassified;
         }
+        field(50120; "Customer Type"; Enum "Customer Type")
+        {
+            Caption = 'Customer Type';
+            DataClassification = ToBeClassified;
+        }
     }
 }
