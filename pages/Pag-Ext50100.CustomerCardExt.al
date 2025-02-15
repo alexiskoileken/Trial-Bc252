@@ -12,6 +12,11 @@ pageextension 50100 CustomerCardExt extends "Customer Card"
                 ApplicationArea = All;
                 ToolTip = 'Select the AI model to use for this customer.';
             }
+            field("Car Type"; Rec."Car Type")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Select the type of company cars.';
+            }
         }
         addlast("General")
         {
@@ -53,9 +58,22 @@ pageextension 50100 CustomerCardExt extends "Customer Card"
                         Iatomate.Belongsto();
                     end;
                 }
+                action(Cars)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Cars', comment = 'NLB="YourLanguageCaption"';
+                    Image = FixedAssets;
+
+                    trigger OnAction()
+                    begin
+                        CompanycarsType := Rec."Car Type";
+                        CompanycarsType.IfIsToyota();
+                    end;
+                }
             }
         }
     }
     var
         Iatomate: Interface Iautomate;
+        CompanycarsType: Interface "Company cars Type";
 }

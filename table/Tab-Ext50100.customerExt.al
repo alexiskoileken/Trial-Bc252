@@ -15,5 +15,9 @@ tableextension 50100 customerExt extends Customer
             Caption = 'Customer Type';
             DataClassification = ToBeClassified;
         }
+        field(50110; "Car Type";  Enum "Company vehicles")
+        {
+            DataClassification = ToBeClassified;
+        }
     }
 }

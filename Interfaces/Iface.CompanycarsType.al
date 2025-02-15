@@ -6,7 +6,7 @@ interface "Company cars Type"
     /// IfIsToyota.
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure IfIsToyota(): Text;
+    procedure IfIsToyota()
     /// <summary>
     /// IfIsPorsche.
     /// </summary>
