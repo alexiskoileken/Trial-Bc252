@@ -13,6 +13,7 @@ codeunit 50105 "Individual Customer" implements CustomerPaymentMethod,CustomerPa
         exit('PayPal');
     end;
 
+
     /// <summary>
     /// AssignPaymentTerms.
     /// </summary>

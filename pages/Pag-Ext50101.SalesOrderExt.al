@@ -2,6 +2,7 @@
 /// PageExtension Sales Order Ext (ID 50101) extends Record Sales Order.
 /// </summary>
 namespace trialversion;
+
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Customer;
 using trialversion.TrialVersion;
