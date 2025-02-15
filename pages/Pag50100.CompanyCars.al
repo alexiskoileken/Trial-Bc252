@@ -9,7 +9,6 @@ page 50100 "Company Car"
     PageType = List;
     SourceTable = "Cars Model";
     UsageCategory = Lists;
-    Editable = false;
 
     layout
     {

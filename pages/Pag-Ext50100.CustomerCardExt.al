@@ -25,6 +25,14 @@ pageextension 50100 CustomerCardExt extends "Customer Card"
                 ApplicationArea = All;
                 ToolTip = 'Select the type of customer.';
             }
+            // usercontrol(companyLogo;companyLogo)
+            // {
+                
+            //     trigger MyTrigger()
+            //     begin
+                    
+            //     end;
+            // }
         }
     }
     actions
