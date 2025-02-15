@@ -67,7 +67,7 @@ pageextension 50100 CustomerCardExt extends "Customer Card"
                     trigger OnAction()
                     begin
                         CompanycarsType := Rec."Car Type";
-                        CompanycarsType.IfIsToyota();
+                        CompanycarsType.GetCarModel();
                     end;
                 }
             }

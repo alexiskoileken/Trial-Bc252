@@ -1,12 +1,15 @@
-namespace TrialVersion.TrialVersion;
 
-page 50100 "Company Cars"
+/// <summary>
+/// Page Company Cars (ID 50100).
+/// </summary>
+page 50100 "Company Car"
 {
     ApplicationArea = All;
     Caption = 'Company Cars';
     PageType = List;
     SourceTable = "Cars Model";
     UsageCategory = Lists;
+    Editable = false;
 
     layout
     {

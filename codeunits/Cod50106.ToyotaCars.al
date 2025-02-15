@@ -1,12 +1,10 @@
-namespace TrialVersion.TrialVersion;
-
 codeunit 50106 ToyotaCars implements "Company cars Type"
 {
 
-    procedure IfIsToyota()
+    procedure GetCarModel()
     var
         CarsModel: Record "Cars Model";
-        CompCars: Page "Company Cars";
+        CompCars: Page "Company Car";
     begin
         CarsModel.SetRange("Car Model", CarsModel."Car Model"::Toyota);
         if CarsModel.FindSet() then begin
@@ -14,21 +12,66 @@ codeunit 50106 ToyotaCars implements "Company cars Type"
             CompCars.Run();
         end;
     end;
-
-    procedure IfIsPorsche(): Text
-    begin
-    end;
-
-    procedure IfIsAudi(): Text
-    begin
-    end;
-
-    procedure IfIsJeep(): Text
-    begin
-    end;
-
-    procedure IfIsMercedenc(): Text
-    begin
-    end;
-
 }
+codeunit 50107 AudiCars implements "Company cars Type"
+{
+
+    procedure GetCarModel()
+    var
+        CarsModel: Record "Cars Model";
+        CompCars: Page "Company Car";
+    begin
+        CarsModel.SetRange("Car Model", CarsModel."Car Model"::Audi);
+        if CarsModel.FindSet() then begin
+            CompCars.SetTableView(CarsModel);
+            CompCars.Run();
+        end;
+    end;
+}
+codeunit 50108 PorscheCars implements "Company cars Type"
+{
+
+    procedure GetCarModel()
+    var
+        CarsModel: Record "Cars Model";
+        CompCars: Page "Company Car";
+    begin
+        CarsModel.SetRange("Car Model", CarsModel."Car Model"::Porsche);
+        if CarsModel.FindSet() then begin
+            CompCars.SetTableView(CarsModel);
+            CompCars.Run();
+        end;
+    end;
+}
+codeunit 50110 jeepsCars implements "Company cars Type"
+{
+
+    procedure GetCarModel()
+    var
+        CarsModel: Record "Cars Model";
+        CompCars: Page "Company Car";
+    begin
+        CarsModel.SetRange("Car Model", CarsModel."Car Model"::Jeep);
+        if CarsModel.FindSet() then begin
+            CompCars.SetTableView(CarsModel);
+            CompCars.Run();
+        end;
+    end;
+}
+codeunit 50111 mercedenzCars implements "Company cars Type"
+{
+
+    procedure GetCarModel()
+    var
+        CarsModel: Record "Cars Model";
+        CompCars: Page "Company Car";
+    begin
+        CarsModel.SetRange("Car Model", CarsModel."Car Model"::mercedenz);
+        if CarsModel.FindSet() then begin
+            CompCars.SetTableView(CarsModel);
+            CompCars.Run();
+        end;
+    end;
+}
+
+
