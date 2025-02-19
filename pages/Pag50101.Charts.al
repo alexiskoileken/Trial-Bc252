@@ -1,3 +1,6 @@
+/// <summary>
+/// Unknown TrialVersion.
+/// </summary>
 namespace TrialVersion.TrialVersion;
 using System.Integration;
 using Microsoft.Sales.Customer;
