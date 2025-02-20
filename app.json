@@ -1,6 +1,6 @@
 {
-  "id": "1f87d63d-d9f4-44c4-bb3d-65ad8670def8",
-  "name": "TrialVersion",
+  "id": "3447794a-20c1-4272-8e23-681eb954947c",
+  "name": "Reports series",
   "publisher": "Default Publisher",
   "version": "1.0.0.0",
   "brief": "",
@@ -13,7 +13,7 @@
   "dependencies": [],
   "screenshots": [],
   "platform": "1.0.0.0",
-  "application": "25.3.28755.29378",
+  "application": "21.0.0.0",
   "idRanges": [
     {
       "from": 50100,
