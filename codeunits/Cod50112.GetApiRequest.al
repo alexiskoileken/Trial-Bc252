@@ -57,4 +57,55 @@ codeunit 50112 GetApiRequest
             end;
         end;
     end;
+
+    /// <summary>
+    /// CustomApiSquare.
+    /// </summary>
+    procedure CustomApiSquare()
+    var
+        client: HttpClient;
+        url: Text;
+        Response: HttpResponseMessage;
+        Content: HttpContent;
+        Result, FamilyName, Email, CompanyName, name : Text;
+        JsonArr: JsonArray;
+        jsonObj: JsonObject;
+        jsnTkn: JsonToken;
+        i: Integer;
+        id: Code[100];
+
+    begin
+        url := 'https://connect.squareupsandbox.com/v2/customers';
+        client.Clear();
+        client.DefaultRequestHeaders.Add('Square-Version', '2025-02-20');
+        client.DefaultRequestHeaders.Add('Authorization', 'Bearer EAAAl64L3yrYG7NxDC7GQMErH41EBxSvIDMJN0lKeayCO6Mn-wY9B-qLXCe0SmFn');
+        client.Get(url, Response);
+        if Response.IsSuccessStatusCode then begin
+            Content := Response.Content;
+            Content.ReadAs(Result);
+            jsonObj.ReadFrom(Result);
+            if jsonObj.Get('customers', jsnTkn) and jsnTkn.IsArray then begin
+                JsonArr := jsnTkn.AsArray();
+                for i := 0 to JsonArr.Count() - 1 do begin
+                    JsonArr.Get(i, jsnTkn);
+                    if jsnTkn.IsObject then begin
+                        jsonObj := jsnTkn.AsObject();
+                        Clear(jsnTkn);
+                        jsonObj.Get('id', jsnTkn);
+                        id := jsnTkn.AsValue().AsCode();
+                        jsonObj.Get('given_name',jsnTkn);
+                        name:=jsnTkn.AsValue().AsText();
+                        jsonObj.Get('company_name',jsnTkn);
+                        CompanyName:=jsnTkn.AsValue().AsText();
+                        jsonObj.Get('email',jsnTkn);
+                        Email:=jsnTkn.AsValue().AsText();
+                        jsonObj:=
+
+                    end;
+                end;
+            end;
+        end
+        else
+            Error('The Api link has  no data ');
+    end;
 }

@@ -41,7 +41,7 @@ page 50102 "Vendor Purchase stats"
             exit;
 
         TmpBusChartBuf.Initialize();
-        TmpBusChartBuf.AddMeasure('Amount', 1, TmpBusChartBuf."Data Type"::Decimal, TmpBusChartBuf."Chart Type"::Pie);
+        TmpBusChartBuf.AddMeasure('Amount', 1, TmpBusChartBuf."Data Type"::Decimal, TmpBusChartBuf."Chart Type"::Column);
         TmpBusChartBuf.SetXAxis('Document Type', TmpBusChartBuf."Data Type"::String);
         if VendLedgEntry.FindSet() then begin
             repeat

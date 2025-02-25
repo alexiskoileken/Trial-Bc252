@@ -27,14 +27,22 @@ pageextension 50100 CustomerCardExt extends "Customer Card"
             }
             // usercontrol(companyLogo;companyLogo)
             // {
-                
+
             //     trigger MyTrigger()
             //     begin
-                    
+
             //     end;
             // }
         }
+        addbefore("Attached Documents List")
+        {
+            part(powerbi; "Power BI Embedded Report Part")
+            {
+                ApplicationArea = all;
+            }
+        }
     }
+
     actions
     {
         addafter(Approval)
