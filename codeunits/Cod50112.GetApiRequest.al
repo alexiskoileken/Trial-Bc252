@@ -62,6 +62,7 @@ codeunit 50112 GetApiRequest
     /// CustomApiSquare.
     /// </summary>
     procedure CustomApiSquare()
+    // the get method
     var
         client: HttpClient;
         url: Text;
@@ -93,13 +94,15 @@ codeunit 50112 GetApiRequest
                         Clear(jsnTkn);
                         jsonObj.Get('id', jsnTkn);
                         id := jsnTkn.AsValue().AsCode();
-                        jsonObj.Get('given_name',jsnTkn);
-                        name:=jsnTkn.AsValue().AsText();
-                        jsonObj.Get('company_name',jsnTkn);
-                        CompanyName:=jsnTkn.AsValue().AsText();
-                        jsonObj.Get('email',jsnTkn);
-                        Email:=jsnTkn.AsValue().AsText();
-                        jsonObj:=
+                        jsonObj.Get('given_name', jsnTkn);
+                        name := jsnTkn.AsValue().AsText();
+                        jsonObj.Get('company_name', jsnTkn);
+                        CompanyName := jsnTkn.AsValue().AsText();
+                        jsonObj.Get('email_address', jsnTkn);
+                        Email := jsnTkn.AsValue().AsText();
+                        jsonObj.Get('family_name', jsnTkn);
+                        FamilyName := jsnTkn.AsValue().AsText();
+                        Message('id: %1 name: %2 companyname: %3 email: %4 familyname: %5', id, name, CompanyName, Email, FamilyName);
 
                     end;
                 end;
@@ -107,5 +110,15 @@ codeunit 50112 GetApiRequest
         end
         else
             Error('The Api link has  no data ');
+    end;
+     /// <summary>
+     /// PostApiMethod.
+     /// </summary>
+     procedure PostApiMethod()
+    //the post method
+    var
+        myInt: Integer;
+    begin
+        
     end;
 }
