@@ -24,14 +24,14 @@ pageextension 50102 "customer list ext" extends "Customer List"
                     CustExcelBuf.ConvertCustomerToBase64();
                 end;
             }
-            action(Get)
+            action("update customer")
             {
                 ApplicationArea = basic, suite;
-                Caption = 'Get', comment = 'NLB="YourLanguageCaption"';
+                Caption = 'update customer', comment = 'NLB="YourLanguageCaption"';
                 Promoted = true;
                 PromotedCategory = Category4;
                 PromotedIsBig = true;
-                Image = Process;
+                Image = Refresh;
 
                 trigger OnAction()
                 var

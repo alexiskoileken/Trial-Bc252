@@ -2,6 +2,9 @@
 /// Unknown TrialVersion.
 /// </summary>
 namespace TrialVersion.TrialVersion;
+using Microsoft.Sales.Customer;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Sales.Setup;
 
 codeunit 50112 GetApiRequest
 {
@@ -74,6 +77,9 @@ codeunit 50112 GetApiRequest
         jsnTkn: JsonToken;
         i: Integer;
         id: Code[100];
+        Cust: Record Customer;
+        NoSeries: Codeunit "No. Series";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
 
     begin
         url := 'https://connect.squareupsandbox.com/v2/customers';
@@ -102,8 +108,21 @@ codeunit 50112 GetApiRequest
                         Email := jsnTkn.AsValue().AsText();
                         jsonObj.Get('family_name', jsnTkn);
                         FamilyName := jsnTkn.AsValue().AsText();
-                        Message('id: %1 name: %2 companyname: %3 email: %4 familyname: %5', id, name, CompanyName, Email, FamilyName);
-
+                        SalesReceivablesSetup.Get();
+                        Cust.SetRange("Name 2", id);
+                        if not Cust.FindFirst() then begin
+                            Cust.Reset();
+                            Cust.Init();
+                            Cust."No." := NoSeries.GetNextNo(SalesReceivablesSetup."Customer Nos.");
+                            Cust.Name := name;
+                            Cust."Name 2" := id;
+                            Cust."E-Mail" := Email;
+                            Cust.Contact := FamilyName;
+                            if Cust.Insert() then
+                                Message('Customer %1 inserted successful', name)
+                        end
+                        else
+                            Message('Customer list is up to date');
                     end;
                 end;
             end;
@@ -111,14 +130,15 @@ codeunit 50112 GetApiRequest
         else
             Error('The Api link has  no data ');
     end;
-     /// <summary>
-     /// PostApiMethod.
-     /// </summary>
-     procedure PostApiMethod()
+
+    /// <summary>
+    /// PostApiMethod.
+    /// </summary>
+    procedure PostApiMethod()
     //the post method
     var
         myInt: Integer;
     begin
-        
+
     end;
 }
