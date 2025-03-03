@@ -35,11 +35,12 @@ pageextension 50102 "customer list ext" extends "Customer List"
 
                 trigger OnAction()
                 var
-                    GetApiRqst: Codeunit GetApiRequest;
+                    Custoverduedetection: Codeunit "Customer overdue detection";
                 begin
-                    GetApiRqst.CustomApiSquare();
+                    Custoverduedetection.CustomerOverDueInvoice();
                 end;
             }
+
         }
     }
 }

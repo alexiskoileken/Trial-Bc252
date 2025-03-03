@@ -80,6 +80,7 @@ codeunit 50112 GetApiRequest
         Cust: Record Customer;
         NoSeries: Codeunit "No. Series";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        NewCustomerInserted: Boolean;
 
     begin
         url := 'https://connect.squareupsandbox.com/v2/customers';
@@ -119,12 +120,14 @@ codeunit 50112 GetApiRequest
                             Cust."E-Mail" := Email;
                             Cust.Contact := FamilyName;
                             if Cust.Insert() then
-                                Message('Customer %1 inserted successful', name)
+                                NewCustomerInserted := true;
                         end
-                        else
-                            Message('Customer list is up to date');
                     end;
                 end;
+                if NewCustomerInserted then
+                    Message('Customer %1 has been inserted Successfully', name)
+                else
+                    Message('Customer List is Up to date');
             end;
         end
         else
