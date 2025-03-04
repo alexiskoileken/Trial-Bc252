@@ -3,6 +3,7 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Sales.Customer;
 using System.Email;
+using Microsoft.Sales.Document;
 
 codeunit 50113 "Customer overdue detection"
 {
