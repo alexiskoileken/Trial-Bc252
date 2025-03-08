@@ -6,7 +6,7 @@ page 50109 "Std line"
     Caption = 'Std line';
     PageType = ListPart;
     SourceTable = "std sales line";
-    
+
     layout
     {
         area(Content)
@@ -20,6 +20,10 @@ page 50109 "Std line"
                 field("Acount No."; Rec."Acount No.")
                 {
                     ToolTip = 'Specifies the value of the Acount No. field.', Comment = '%';
+                }
+                field(name; Rec.name)
+                {
+
                 }
             }
         }

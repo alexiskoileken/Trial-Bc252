@@ -19,27 +19,6 @@
             "tenant": "default",
             "usePublicURLFromServer": true,
             "schemaUpdateMode": "ForceSync"
-        },
-        {
-            "name": "AL: Generated Download Symbols request",
-            "request": "launch",
-            "type": "al",
-            "server": "http://Alexis",
-            "serverInstance": "BC252",
-            "authentication": "Windows",
-            "port": 7049
-        },
-        {
-            "name": "AL: Generated Attach request",
-            "request": "attach",
-            "type": "al",
-            "server": "http://Alexis",
-            "serverInstance": "BC252",
-            "authentication": "Windows",
-            "port": 7049,
-            "sessionId": 104,
-            "breakOnNext": "WebClient",
-            "breakOnError": "ExcludeTry"
         }
     ]
 }
