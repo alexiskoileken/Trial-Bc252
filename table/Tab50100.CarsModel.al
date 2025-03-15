@@ -26,6 +26,10 @@ table 50100 "Cars Model"
             Caption = ' Engine CC';
             DataClassification = ToBeClassified;
         }
+        field(6; Status; Enum "Consumer status")
+        {
+            DataClassification = ToBeClassified;
+        }
 
     }
     keys

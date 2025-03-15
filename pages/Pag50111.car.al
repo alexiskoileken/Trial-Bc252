@@ -1,12 +1,13 @@
 namespace TrialVersion.TrialVersion;
+
 using System.Automation;
 
-page 50108 "std card"
+page 50111 car
 {
     ApplicationArea = All;
-    Caption = 'std card';
+    Caption = 'car';
     PageType = Card;
-    SourceTable = Std;
+    SourceTable = "Cars Model";
 
     layout
     {
@@ -16,19 +17,26 @@ page 50108 "std card"
             {
                 Caption = 'General';
 
-                field("std id"; Rec."std id")
+                field("Car Model"; Rec."Car Model")
                 {
-                    ToolTip = 'Specifies the value of the std id field.', Comment = '%';
+                    ToolTip = 'Specifies the value of the Car Id field.', Comment = '%';
                 }
-                field(Name; Rec.Name)
+                field("Car Name"; Rec."Car Name")
                 {
-                    ToolTip = 'Specifies the value of the Name field.', Comment = '%';
+                    ToolTip = 'Specifies the value of the Car Name field.', Comment = '%';
                 }
-            }
-            part(lines; "Std line")
-            {
-                ApplicationArea = all;
-                SubPageLink = No = field("std id");
+                field(CC; Rec.CC)
+                {
+                    ToolTip = 'Specifies the value of the Engine CC field.', Comment = '%';
+                }
+                field(CarId; Rec.CarId)
+                {
+                    ToolTip = 'Specifies the value of the Car Id field.', Comment = '%';
+                }
+                field(Status; Rec.Status)
+                {
+                    ToolTip = 'Specifies the value of the Status field.', Comment = '%';
+                }
             }
         }
     }

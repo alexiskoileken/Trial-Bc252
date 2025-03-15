@@ -1,5 +1,6 @@
 namespace TrialVersion.TrialVersion;
 
+
 page 50107 Std
 {
     ApplicationArea = All;
@@ -22,7 +23,12 @@ page 50107 Std
                 {
                     ToolTip = 'Specifies the value of the Name field.', Comment = '%';
                 }
+                field(Status; Rec.Status)
+                {
+                    ToolTip = 'Specifies the value of the status field.', Comment = '%';
+                }
             }
         }
     }
+
 }

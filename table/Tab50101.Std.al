@@ -5,7 +5,7 @@ table 50101 Std
 {
     Caption = 'Std';
     DataClassification = ToBeClassified;
-    
+
     fields
     {
         field(1; "std id"; Code[20])
@@ -15,6 +15,11 @@ table 50101 Std
         field(2; Name; Text[50])
         {
             Caption = 'Name';
+        }
+        field(6; Status; Enum "Consumer status")
+        {
+            DataClassification = ToBeClassified;
+            Editable = false;
         }
     }
     keys
