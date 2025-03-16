@@ -58,13 +58,12 @@ page 50111 car
                     Visible = Not OpenApprovalEntriesExistCurrUser;
                     trigger OnAction()
                     var
-                        RecRef: RecordRef;
+                        RecVariant:Variant;
                         CustomHdrworkflow: Codeunit "Custom Header workflow";
                     begin
-                        RecRef.GetTable(Rec);
-                        if CustomHdrworkflow.CheckApprovalsWorkflowEnabled(RecRef) then
-                            CustomHdrworkflow.OnSendRecordForApproval(RecRef);
-                        CurrPage.Close();
+                        RecVariant := Rec;
+                        if CustomHdrworkflow.CheckApprovalsWorkflowEnabled(RecVariant) then
+                            CustomHdrworkflow.OnSendDocForApproval(RecVariant);
                     end;
                 }
                 action(CancelApprovalRequest)
@@ -79,11 +78,11 @@ page 50111 car
 
                     trigger OnAction()
                     var
-                        RecRef: RecordRef;
+                        Recvariant: Variant;
                         CustomHdrworkflow: Codeunit "Custom Header workflow";
                     begin
-                        RecRef.GetTable(rec);
-                        CustomHdrworkflow.OnCancelApprovalRecord(RecRef);
+                        Recvariant := Rec;
+                        CustomHdrworkflow.OnCancelDocApprovalRequest(Recvariant);
                     end;
                 }
             }

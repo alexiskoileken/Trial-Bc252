@@ -4,97 +4,128 @@ using Microsoft.Utilities;
 
 codeunit 50116 "Custom Header workflow"
 {
-    //check if workflow is enabled 
-    //Get workflow code 
-    //publish events
-    //add event to the library 
-    //handle the document
-    //check workflow enabled
-    //codeunit 1502 workflowtemplate enable setup
+    trigger OnRun()
+    var
+        myInt: Integer;
+    begin
+        AddWorkflowEventsToLibrary();
+    end;
+
     var
         WorkflowMgt: Codeunit "Workflow Management";
+        UnsupportedRecordTypeErr: label 'Record type %1 is not supported by this workflow response.', Comment = 'Record type Customer is not supported by this workflow response.';
+        NoWorkflowEnabledErr: label 'This record is not supported by related approval workflow.';
+        //Consumer
+        RunWorkflowOnSendConsumerForApprovalCode: label 'RUNWORKFLOWONSENDCONSUMERFORAPPROVAL';
+        RunWorkflowOnCancelConsumerForApprovalCode: label 'RUNWORKFLOWONCANCELCONSUMERFORAPPROVAL';
+        OnCancelConsumerApprovalRequestTxt: label 'An Approval of Consumer is cancelled';
+        OnSendconsumerApprovalRequestTxt: label ' An Approval of Consumer is requested';
+        //std
+        RunWorkflowOnSendStdForApprovalCode: label 'RUNWORKFLOWONSENDSTDFORAPPROVAL';
+        RunWorkflowOnCancelStdForApprovalCode: label 'RUNWORKFLOWONCANCELSTDFORAPPROVAL';
+        OnCancelstdRequestTxt: label 'An Approval of Std is cancelled';
+        OnSendstdRequestTxt: label ' An Approval of Std is requested';
+        //cars
+        RunWorkflowOnSendCarsForApprovalCode: label 'RUNWORKFLOWONSENDCARSFORAPPROVAL';
+        RunWorkflowOnCancelCarsForApprovalCode: label 'RUNWORKFLOWONCANCELCARSFORAPPROVAL';
+        OnCancelCarsApprovalRequestTxt: label 'An Approval of cars is cancelled';
+        OnSendCarsApprovalRequestTxt: label ' An Approval of cars is requested';
 
-        RUNWORKFLOWONSENDFORAPPROVALCODE:
-                Label 'RUNWORKFLOWONSEND%1FORAPPROVAL';
-        RUNWORKFLOWONCANCELFORAPPROVALCODE:
-                Label 'RUNWORKFLOWONCANCEL%1FORAPPROVAL';
-        NoWorkflowEnabledErr:
-                Label 'No approval workflow for this record type is enabled.';
-        WorkflowSendForApprovalEventDescTxt:
-                Label ' An Approval of %1 is requested.';
-        WorkflowCancelForApprovalEventDescTxt:
-                Label 'An Approval of %1 is canceled.';
-
-    procedure CheckApprovalsWorkflowEnabled(var RecRef: RecordRef): Boolean
+    procedure CheckApprovalsWorkflowEnabled(var variant: Variant): Boolean
     var
+        RecRef: RecordRef;
+        Std: Record Std;
+        Consumer: Record Consumer;
+        CarsModel: Record "Cars Model";
     begin
-        if not WorkflowMgt.CanExecuteWorkflow(RecRef, RunWorkflowRecordForApprovalCode(RUNWORKFLOWONSENDFORAPPROVALCODE, recref)) then
+        RecRef.GetTable(variant);
+        case RecRef.Number of
+            Database::Std:
+                exit(CheckApprovalsWorkflowEnabledCode(variant, RunWorkflowOnSendStdForApprovalCode));
+            Database::Consumer:
+                exit(CheckApprovalsWorkflowEnabledCode(variant, RunWorkflowOnSendConsumerForApprovalCode));
+            Database::"Cars Model":
+                exit(CheckApprovalsWorkflowEnabledCode(variant, RunWorkflowOnSendCarsForApprovalCode));
+            else
+                Error(UnsupportedRecordTypeErr, RecRef.Caption);
+        end
+
+    end;
+
+    procedure CheckApprovalsWorkflowEnabledCode(var Variant: Variant; CheckApprovalsWorkflowTxt: Text): Boolean
+    var
+        RecRef: RecordRef;
+        WorkflowEventHandling: Codeunit "Workflow Event Handling";
+    begin
+        if not WorkflowMgt.CanExecuteWorkflow(Variant, CheckApprovalsWorkflowTxt) then
             Error(NoWorkflowEnabledErr);
         exit(true);
     end;
-    //dynamic workflow code
-    procedure RunWorkflowRecordForApprovalCode(WorkflowCode: Code[128]; RecRef: RecordRef): Code[128]
-    begin
-        exit(DelChr(StrSubstNo(WorkflowCode, RecRef.Name), '=', ''));
-    end;
-    // publish the events
+
     [IntegrationEvent(false, false)]
-    procedure OnSendRecordForApproval(var RecRef: RecordRef)
+    procedure OnSendDocForApproval(var Variant: Variant)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnCancelApprovalRecord(var RecRef: RecordRef)
+
+    procedure OnCancelDocApprovalRequest(var Variant: Variant)
     begin
-    end;
-    // add events to the library
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", OnAddWorkflowEventsToLibrary, '', false, false)]
-    local procedure OnAddWorkflowEventsToLibrary()
-    var
-        RecRef: RecordRef;
-        WorkflowEventHandling: Codeunit "Workflow Event Handling";
-    begin
-        RecRef.Open(Database::Std);
-        WorkflowEventHandling.AddEventToLibrary(RunWorkflowRecordForApprovalCode(RUNWORKFLOWONSENDFORAPPROVALCODE, RecRef), Database::Std
-        , GetDescriptionTxt(WorkflowSendForApprovalEventDescTxt, RecRef), 0, false);
-        WorkflowEventHandling.AddEventToLibrary(RunWorkflowRecordForApprovalCode(RUNWORKFLOWONCANCELFORAPPROVALCODE, RecRef), Database::Std
-       , GetDescriptionTxt(WorkflowCancelForApprovalEventDescTxt, RecRef), 0, false);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", OnAddWorkflowEventsToLibrary, '', false, false)]
-    local procedure OnAddCarWorkflowEventsToLibrary()
+    local procedure AddWorkflowEventsToLibrary()
     var
-        RecRef: RecordRef;
         WorkflowEventHandling: Codeunit "Workflow Event Handling";
     begin
-        RecRef.Open(Database::"Cars Model");
-        WorkflowEventHandling.AddEventToLibrary(RunWorkflowRecordForApprovalCode(RUNWORKFLOWONSENDFORAPPROVALCODE, RecRef), Database::"Cars Model"
-        , GetDescriptionTxt(WorkflowSendForApprovalEventDescTxt, RecRef), 0, false);
-        WorkflowEventHandling.AddEventToLibrary(RunWorkflowRecordForApprovalCode(RUNWORKFLOWONCANCELFORAPPROVALCODE, RecRef), Database::"Cars Model"
-       , GetDescriptionTxt(WorkflowCancelForApprovalEventDescTxt, RecRef), 0, false);
+        WorkflowEventHandling.AddEventToLibrary(RunWorkflowOnSendStdForApprovalCode, Database::Std, OnSendstdRequestTxt, 0, false);
+        WorkflowEventHandling.AddEventToLibrary(RunWorkflowOnCancelStdForApprovalCode, Database::Std, OnCancelstdRequestTxt, 0, false);
+
+        WorkflowEventHandling.AddEventToLibrary(RunWorkflowOnSendConsumerForApprovalCode, Database::Consumer, OnSendconsumerApprovalRequestTxt, 0, false);
+        WorkflowEventHandling.AddEventToLibrary(RunWorkflowOnCancelConsumerForApprovalCode, Database::Consumer, OnCancelConsumerApprovalRequestTxt, 0, false);
+
+        WorkflowEventHandling.AddEventToLibrary(RunWorkflowOnSendCarsForApprovalCode, Database::"Cars Model", OnSendCarsApprovalRequestTxt, 0, false);
+        WorkflowEventHandling.AddEventToLibrary(RunWorkflowOnCancelCarsForApprovalCode, Database::"Cars Model", OnCancelCarsApprovalRequestTxt, 0, false);
     end;
-    //dynamic workflow description text
-    local procedure GetDescriptionTxt(DescriptionTxt: Text[250]; RecRef: RecordRef): Text
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Custom Header workflow", OnSendDocForApproval, '', false, false)]
+
+    procedure RunWorkflowOnSendApprovalRequest(var Variant: Variant)
     var
-    //RecRef: RecordRef;
+        RecRef: RecordRef;
     begin
-        exit(StrSubstNo(DescriptionTxt, RecRef.Name))
+        RecRef.GetTable(Variant);
+        case RecRef.Number of
+            Database::Std:
+                WorkflowMgt.HandleEvent(RunWorkflowOnSendStdForApprovalCode, Variant);
+            Database::Consumer:
+                WorkflowMgt.HandleEvent(RunWorkflowOnSendConsumerForApprovalCode, Variant);
+            Database::"Cars Model":
+                WorkflowMgt.HandleEvent(RunWorkflowOnSendCarsForApprovalCode, Variant);
+            else
+                Error(UnsupportedRecordTypeErr, RecRef.Caption);
+        end
     end;
-    // subscribing to the raised events
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Custom Header workflow", OnSendRecordForApproval, '', false, false)]
-    local procedure SendRecordForApproval(var RecRef: RecordRef)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Custom Header workflow", 'OnCancelDocApprovalRequest', '', false, false)]
+
+    procedure RunWorkflowOnCancelApprovalRequest(var Variant: Variant)
+    var
+        RecRef: RecordRef;
     begin
-        WorkflowMgt.HandleEvent(RunWorkflowRecordForApprovalCode(RUNWORKFLOWONSENDFORAPPROVALCODE, RecRef)
-        , RecRef);
+        RecRef.GetTable(Variant);
+        case RecRef.Number of
+            Database::Std:
+                WorkflowMgt.HandleEvent(RunWorkflowOnCancelStdForApprovalCode, Variant);
+            Database::Consumer:
+                WorkflowMgt.HandleEvent(RunWorkflowOnCancelConsumerForApprovalCode, Variant);
+            Database::"Cars Model":
+                WorkflowMgt.HandleEvent(RunWorkflowOnCancelCarsForApprovalCode, Variant);
+            else
+                Error(UnsupportedRecordTypeErr, RecRef.Caption);
+        end
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Custom Header workflow", OnCancelApprovalRecord, '', false, false)]
-    local procedure CancelApprovalRequest(Var RecRef: RecordRef)
-    begin
-        WorkflowMgt.HandleEvent(RunWorkflowRecordForApprovalCode(RUNWORKFLOWONCANCELFORAPPROVALCODE, RecRef),
-        RecRef);
-    end;
 
     //Open the Document
 
@@ -102,6 +133,8 @@ codeunit 50116 "Custom Header workflow"
     local procedure OnOpenDocument(RecRef: RecordRef; var Handled: Boolean)
     var
         Std: Record Std;
+        Consumer: Record Consumer;
+        CarsModel: Record "Cars Model";
     begin
         case RecRef.Number of
             database::Std:
@@ -111,15 +144,13 @@ codeunit 50116 "Custom Header workflow"
                     Std.Modify(true);
                     Handled := true;
                 end;
-        end
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Response Handling", OnOpenDocument, '', false, false)]
-    local procedure OnOpenCarsModelDocument(RecRef: RecordRef; var Handled: Boolean)
-    var
-        CarsModel: Record "Cars Model";
-    begin
-        case RecRef.Number of
+            database::Consumer:
+                begin
+                    RecRef.SetTable(Consumer);
+                    Consumer.Validate(Status, Consumer.Status::Open);
+                    Consumer.Modify(true);
+                    Handled := true;
+                end;
             database::"Cars Model":
                 begin
                     RecRef.SetTable(CarsModel);
@@ -127,6 +158,7 @@ codeunit 50116 "Custom Header workflow"
                     CarsModel.Modify(true);
                     Handled := true;
                 end;
+
         end
     end;
 
@@ -136,6 +168,8 @@ codeunit 50116 "Custom Header workflow"
     local procedure OnSetStatusToPendingApproval(RecRef: RecordRef; var Variant: Variant; var IsHandled: Boolean)
     var
         Std: Record Std;
+        Consumer: Record Consumer;
+        CarsModel: Record "Cars Model";
     begin
         case RecRef.Number of
             database::Std:
@@ -146,14 +180,33 @@ codeunit 50116 "Custom Header workflow"
                     Variant := std;
                     IsHandled := true;
                 end;
+            database::Consumer:
+                begin
+                    RecRef.SetTable(Consumer);
+                    Consumer.Validate(Status, Consumer.Status::"Pending approval");
+                    Consumer.Modify(true);
+                    Variant := Consumer;
+                    IsHandled := true;
+                end;
+            database::"Cars Model":
+                begin
+                    RecRef.SetTable(CarsModel);
+                    CarsModel.Validate(Status, CarsModel.Status::"Pending approval");
+                    CarsModel.Modify(true);
+                    Variant := CarsModel;
+                    IsHandled := true;
+                end;
         end;
     end;
+
     // on populate approval entry
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", OnPopulateApprovalEntryArgument, '', false, false)]
     local procedure OnPopulateApprovalEntryArgument(var RecRef: RecordRef; var ApprovalEntryArgument: Record "Approval Entry"; WorkflowStepInstance: Record "Workflow Step Instance")
     var
         Std: Record Std;
+        Consumer: Record Consumer;
+        CarsModel: Record "Cars Model";
     begin
         case RecRef.Number of
             database::Std:
@@ -161,14 +214,27 @@ codeunit 50116 "Custom Header workflow"
                     RecRef.SetTable(Std);
                     ApprovalEntryArgument."Document No." := Std."std id";
                 end;
+            database::Consumer:
+                begin
+                    RecRef.SetTable(Consumer);
+                    ApprovalEntryArgument."Document No." := Consumer.ID;
+                end;
+            database::"Cars Model":
+                begin
+                    RecRef.SetTable(CarsModel);
+                    ApprovalEntryArgument."Document No." := CarsModel.CarId;
+                end;
         end
     end;
+
     // on release document 
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Response Handling", OnReleaseDocument, '', false, false)]
     local procedure OnReleaseDocument(RecRef: RecordRef; var Handled: Boolean)
     var
         Std: Record Std;
+        Consumer: Record Consumer;
+        CarsModel: Record "Cars Model";
     begin
         case RecRef.Number of
             Database::Std:
@@ -176,6 +242,20 @@ codeunit 50116 "Custom Header workflow"
                     RecRef.SetTable(Std);
                     Std.Validate(Status, Std.Status::Approved);
                     Std.Modify(true);
+                    Handled := true;
+                end;
+            Database::Consumer:
+                begin
+                    RecRef.SetTable(Consumer);
+                    Consumer.Validate(Status, Consumer.Status::Approved);
+                    Consumer.Modify(true);
+                    Handled := true;
+                end;
+            Database::"Cars Model":
+                begin
+                    RecRef.SetTable(CarsModel);
+                    CarsModel.Validate(Status, CarsModel.Status::Approved);
+                    CarsModel.Modify(true);
                     Handled := true;
                 end;
         end;
@@ -186,6 +266,8 @@ codeunit 50116 "Custom Header workflow"
     local procedure OnRejectApprovalRequest(var ApprovalEntry: Record "Approval Entry")
     var
         std: Record Std;
+        Consumer: Record Consumer;
+        CarsModel: Record "Cars Model";
     begin
         case ApprovalEntry."Table ID" of
             database::Std:
@@ -195,6 +277,22 @@ codeunit 50116 "Custom Header workflow"
                         std.Modify(true)
                     end
                 end;
+            database::Consumer:
+                begin
+                    if Consumer.Get(ApprovalEntry."Document No.") then begin
+                        Consumer.Validate(Status, Consumer.Status::Rejected);
+                        Consumer.Modify(true)
+                    end
+                end;
+            database::"Cars Model":
+                begin
+                    if CarsModel.Get(ApprovalEntry."Document No.") then begin
+                        CarsModel.Validate(Status, CarsModel.Status::Rejected);
+                        CarsModel.Modify(true)
+                    end
+                end;
         end;
     end;
+
+
 }

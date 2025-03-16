@@ -48,12 +48,12 @@ page 50103 "Consumer List"
                     Visible = Not OpenApprovalEntriesExistCurrUser;
                     trigger OnAction()
                     var
-                        RecRef: RecordRef;
-                        customworkflow: Codeunit "custom workflow";
+                        VarVariant: Variant;
+                        CustomApprovals: Codeunit "Custom Header workflow";
                     begin
-                        RecRef.GetTable(Rec);
-                        if customworkflow.CheckApprovalsWorkflowEnabled(RecRef) then
-                            customworkflow.OnSendWorkflowForApproval(RecRef);
+                        VarVariant := Rec;
+                        if CustomApprovals.CheckApprovalsWorkflowEnabled(VarVariant) then
+                            CustomApprovals.OnSendDocForApproval(VarVariant);
                         CurrPage.Close();
                     end;
                 }
@@ -69,11 +69,11 @@ page 50103 "Consumer List"
 
                     trigger OnAction()
                     var
-                        RecRef: RecordRef;
-                        customworkflow: Codeunit "custom workflow";
+                        Recvariant: Variant;
+                        CustomHdrworkflow: Codeunit "Custom Header workflow";
                     begin
-                        RecRef.GetTable(rec);
-                        customworkflow.OnCancelWorkflowForApproval(RecRef);
+                        Recvariant := Rec;
+                        CustomHdrworkflow.OnCancelDocApprovalRequest(Recvariant);
                     end;
                 }
             }
