@@ -12,20 +12,33 @@ codeunit 50116 "Custom Header workflow"
     end;
 
     var
+        //Global
+        WorkflowSetup: Codeunit "Workflow Setup";
+        WorkflowCategoryCode: TextConst ENU = 'CUSTM';
+        WorkflowCategoryDescTxt: TextConst ENU = 'Custom Documents';
         WorkflowMgt: Codeunit "Workflow Management";
         UnsupportedRecordTypeErr: label 'Record type %1 is not supported by this workflow response.', Comment = 'Record type Customer is not supported by this workflow response.';
         NoWorkflowEnabledErr: label 'This record is not supported by related approval workflow.';
         //Consumer
+        ConsumerApprovalWorkflowCodeTxt: TextConst ENU = 'CAPW';
+        ConsumerApprovalWorkfowDescTxt: TextConst ENU = 'Consumer approval workflow';
+        ConsumerTypeCondTxt: TextConst ENU = '<?xml version = “1.0” encoding=”utf-8” standalone=”yes”?><ReportParameters><DataItems><DataItem name="Consumer">%1</DataItem></DataItems></ReportParameters>';
         RunWorkflowOnSendConsumerForApprovalCode: label 'RUNWORKFLOWONSENDCONSUMERFORAPPROVAL';
         RunWorkflowOnCancelConsumerForApprovalCode: label 'RUNWORKFLOWONCANCELCONSUMERFORAPPROVAL';
         OnCancelConsumerApprovalRequestTxt: label 'An Approval of Consumer is cancelled';
         OnSendconsumerApprovalRequestTxt: label ' An Approval of Consumer is requested';
         //std
+        StdApprovalWorkflowCodeTxt: TextConst ENU = 'SAPW';
+        StdApprovalWorkfowDescTxt: TextConst ENU = 'Std Approval Workflow';
+        StdTypeCondTxt: TextConst ENU = '<?xml version = “1.0” encoding=”utf-8” standalone=”yes”?><ReportParameters><DataItems><DataItem name="Std">%1</DataItem></DataItems></ReportParameters>';
         RunWorkflowOnSendStdForApprovalCode: label 'RUNWORKFLOWONSENDSTDFORAPPROVAL';
         RunWorkflowOnCancelStdForApprovalCode: label 'RUNWORKFLOWONCANCELSTDFORAPPROVAL';
         OnCancelstdRequestTxt: label 'An Approval of Std is cancelled';
         OnSendstdRequestTxt: label ' An Approval of Std is requested';
         //cars
+        CarsApprovalWorkflowCodeTxt: TextConst ENU = 'CRAPW';
+        CarsApprovalWorkfowDescTxt: TextConst ENU = 'Cars Approval Workflow';
+        CarsTypeCondTxt: TextConst ENU = '<?xml version = “1.0” encoding=”utf-8” standalone=”yes”?><ReportParameters><DataItems><DataItem name="Cars">%1</DataItem></DataItems></ReportParameters>';
         RunWorkflowOnSendCarsForApprovalCode: label 'RUNWORKFLOWONSENDCARSFORAPPROVAL';
         RunWorkflowOnCancelCarsForApprovalCode: label 'RUNWORKFLOWONCANCELCARSFORAPPROVAL';
         OnCancelCarsApprovalRequestTxt: label 'An Approval of cars is cancelled';
@@ -292,6 +305,124 @@ codeunit 50116 "Custom Header workflow"
                     end
                 end;
         end;
+    end;
+
+
+    //Add workflow categories
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Setup", OnAddWorkflowCategoriesToLibrary, '', false, false)]
+    local procedure OnAddWorkflowCategoriesToLibrary()
+    begin
+        WorkflowSetup.InsertWorkflowCategory(WorkflowCategoryCode, WorkflowCategoryDescTxt);
+    end;
+
+    //add on after insert table relations to library
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Setup", OnAfterInsertApprovalsTableRelations, '', false, false)]
+    local procedure InsertApprovalsTableRelations()
+    var
+        ApprovalEntry: Record "Approval Entry";
+    begin
+        WorkflowSetup.InsertTableRelation(Database::Std, 0, Database::"Approval Entry", ApprovalEntry.FieldNo("Record ID to Approve"));
+        WorkflowSetup.InsertTableRelation(Database::Consumer, 0, Database::"Approval Entry", ApprovalEntry.FieldNo("Record ID to Approve"));
+        WorkflowSetup.InsertTableRelation(Database::"Cars Model", 0, Database::"Approval Entry", ApprovalEntry.FieldNo("Record ID to Approve"));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Setup", OnInsertWorkflowTemplates, '', false, false)]
+    local procedure InsertWorkflowTemplates()
+    begin
+        InsertStdWorkflowTemplates();
+        InsertConsumerWorkflowTemplates();
+        InsertCarsWorkflowTemplates();
+    end;
+
+    local procedure InsertStdWorkflowTemplates()
+    var
+        Workflow: Record Workflow;
+    begin
+        WorkflowSetup.InsertWorkflowTemplate(Workflow, StdApprovalWorkflowCodeTxt, StdApprovalWorkfowDescTxt, WorkflowCategoryCode);
+        InsertStdApprovalWorkflowDetails(Workflow);
+        WorkflowSetup.MarkWorkflowAsTemplate(Workflow);
+    end;
+
+    local procedure InsertConsumerWorkflowTemplates()
+    var
+        Workflow: Record Workflow;
+    begin
+        WorkflowSetup.InsertWorkflowTemplate(Workflow, ConsumerApprovalWorkflowCodeTxt, ConsumerApprovalWorkfowDescTxt, WorkflowCategoryCode);
+        InsertConsumerApprovalWorkflowDetails(Workflow);
+        WorkflowSetup.MarkWorkflowAsTemplate(Workflow);
+    end;
+
+    local procedure InsertCarsWorkflowTemplates()
+    var
+        Workflow: Record Workflow;
+    begin
+        WorkflowSetup.InsertWorkflowTemplate(Workflow, CarsApprovalWorkflowCodeTxt, CarsApprovalWorkfowDescTxt, WorkflowCategoryCode);
+        InsertCarsApprovalWorkflowDetails(Workflow);
+        WorkflowSetup.MarkWorkflowAsTemplate(Workflow);
+    end;
+
+    local procedure InsertCarsApprovalWorkflowDetails(var Workflow: Record Workflow)
+    var
+        WorkflowStepArgument: Record "Workflow Step Argument";
+        BlankDateFormula: DateFormula;
+        CarsModel: Record "Cars Model";
+    begin
+        WorkflowSetup.InitWorkflowStepArgument(WorkflowStepArgument, WorkflowStepArgument."Approver Type"::Approver, WorkflowStepArgument."Approver Limit Type"::"Direct Approver",
+        0, '', BlankDateFormula, true);
+
+        WorkflowSetup.InsertDocApprovalWorkflowSteps(Workflow, BuildCarsModelTypeConditions(CarsModel.Status::Open), RunWorkflowOnSendCarsForApprovalCode,
+        BuildCarsModelTypeConditions(CarsModel.Status::"Pending approval"), RunWorkflowOnCancelCarsForApprovalCode,
+        WorkflowStepArgument, true);
+    end;
+
+    local procedure InsertStdApprovalWorkflowDetails(var Workflow: Record Workflow)
+    var
+        WorkflowStepArgument: Record "Workflow Step Argument";
+        BlankDateFormula: DateFormula;
+        Std: Record Std;
+    begin
+        WorkflowSetup.InitWorkflowStepArgument(WorkflowStepArgument, WorkflowStepArgument."Approver Type"::Approver, WorkflowStepArgument."Approver Limit Type"::"Direct Approver",
+        0, '', BlankDateFormula, true);
+
+        WorkflowSetup.InsertDocApprovalWorkflowSteps(Workflow, BuildStdTypeConditions(std.Status::Open), RunWorkflowOnSendStdForApprovalCode,
+        BuildStdTypeConditions(Std.Status::"Pending approval"), RunWorkflowOnCancelStdForApprovalCode,
+        WorkflowStepArgument, true);
+    end;
+
+    local procedure InsertConsumerApprovalWorkflowDetails(var Workflow: Record Workflow)
+    var
+        WorkflowStepArgument: Record "Workflow Step Argument";
+        BlankDateFormula: DateFormula;
+        Consumer: Record Consumer;
+    begin
+        WorkflowSetup.InitWorkflowStepArgument(WorkflowStepArgument, WorkflowStepArgument."Approver Type"::Approver, WorkflowStepArgument."Approver Limit Type"::"Direct Approver",
+        0, '', BlankDateFormula, true);
+
+        WorkflowSetup.InsertDocApprovalWorkflowSteps(Workflow, BuildConsumerTypeConditions(Consumer.Status::Open), RunWorkflowOnSendConsumerForApprovalCode, BuildConsumerTypeConditions(Consumer.Status::"Pending approval"), RunWorkflowOnCancelConsumerForApprovalCode, WorkflowStepArgument, true);
+    end;
+
+    procedure BuildStdTypeConditions(StatusParam: Enum "Consumer status"): Text
+    var
+        Std: Record Std;
+    begin
+        Std.SetRange(Status, StatusParam);
+        exit(StrSubstNo(StdTypeCondTxt, WorkflowSetup.Encode(Std.GetView(false))));
+    end;
+
+    procedure BuildConsumerTypeConditions(StatusParam: Enum "Consumer status"): Text
+    var
+        Consumer: Record Consumer;
+    begin
+        Consumer.SetRange(Status, StatusParam);
+        exit(StrSubstNo(ConsumerTypeCondTxt, WorkflowSetup.Encode(Consumer.GetView(false))));
+    end;
+
+    procedure BuildCarsModelTypeConditions(StatusParam: Enum "Consumer status"): Text
+    var
+        CarsModel: Record "Cars Model";
+    begin
+        CarsModel.SetRange(Status, StatusParam);
+        exit(StrSubstNo(CarsTypeCondTxt, WorkflowSetup.Encode(CarsModel.GetView(false))));
     end;
 
 
