@@ -4,10 +4,6 @@ enum 50103 "Consumer status"
 {
     Extensible = true;
     
-    value(0; "")
-    {
-        Caption = '';
-    }
     value(1; Open)
     {
         Caption = 'Open';

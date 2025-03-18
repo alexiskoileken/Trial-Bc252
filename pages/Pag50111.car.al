@@ -2,12 +2,16 @@ namespace TrialVersion.TrialVersion;
 
 using System.Automation;
 
+
+
 page 50111 car
 {
     ApplicationArea = All;
     Caption = 'car';
     PageType = Card;
     SourceTable = "Cars Model";
+    RefreshOnActivate = true;
+    PromotedActionCategories = 'new,Process,Report,Request Approval,Approvals,';
 
     layout
     {
@@ -44,124 +48,119 @@ page 50111 car
     {
         area(Processing)
         {
-            group("Approval Requests")
+            group(RequestApproval)
             {
-                caption = 'Approval Requests';
+                Caption = 'Request Approval';
                 action(SendApprovalRequest)
                 {
-                    Caption = 'Send ApprovalRequest';
-                    ApplicationArea = basic, suite;
+                    ApplicationArea = Basic;
+                    Caption = 'Send A&pproval Request';
+                    Enabled = not OpenApprovalEntriesExist;
                     Image = SendApprovalRequest;
-                    Tooltip = 'Request approval for the book to borrow.';
                     Promoted = true;
-                    PromotedCategory = Process;
-                    Visible = Not OpenApprovalEntriesExistCurrUser;
+                    PromotedCategory = Category4;
+
                     trigger OnAction()
                     var
-                        RecVariant:Variant;
+                        VarVariant: Variant;
                         CustomHdrworkflow: Codeunit "Custom Header workflow";
                     begin
-                        RecVariant := Rec;
-                        if CustomHdrworkflow.CheckApprovalsWorkflowEnabled(RecVariant) then
-                            CustomHdrworkflow.OnSendDocForApproval(RecVariant);
+                        Rec.TestField(Rec.Status, Rec.Status::Open);
+                        VarVariant := Rec;
+
+                        if CustomHdrworkflow.CheckApprovalsWorkflowEnabled(VarVariant) then
+                            CustomHdrworkflow.OnSendDocForApproval(VarVariant);
                     end;
                 }
                 action(CancelApprovalRequest)
                 {
-                    Caption = 'Cancel ApprovalRequest';
-                    ApplicationArea = basic, suite;
-                    Image = CancelApprovalRequest;
-                    ToolTip = 'Cancel the approval request.';
+                    ApplicationArea = Basic;
+                    Caption = 'Cancel Approval Re&quest';
+                    Enabled = OpenApprovalEntriesExist;
+                    Image = Cancel;
                     Promoted = true;
-                    PromotedCategory = Process;
-                    Enabled = CanCancelApprovalForRecord;
+                    PromotedCategory = Category4;
 
                     trigger OnAction()
                     var
-                        Recvariant: Variant;
+                        VarVariant: Variant;
                         CustomHdrworkflow: Codeunit "Custom Header workflow";
                     begin
-                        Recvariant := Rec;
-                        CustomHdrworkflow.OnCancelDocApprovalRequest(Recvariant);
+                        VarVariant := Rec;
+                        CustomHdrworkflow.OnCancelDocApprovalRequest(VarVariant);
                     end;
                 }
             }
-        }
-        area(Creation)
-        {
+            group(Navigate)
+            {
+                Caption = 'Navigate';
+                action(Approvals)
+                {
+                    ApplicationArea = Basic;
+                    Caption = 'Approvals';
+                    Image = Approvals;
+                    Promoted = true;
+                    PromotedCategory = Category4;
+
+                    trigger OnAction()
+                    var
+                        ApprovalEntries: Page "Approval Entries";
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.OpenApprovalEntriesPage(Rec.RecordId);
+                    end;
+                }
+            }
             group(Approval)
             {
                 Caption = 'Approval';
                 action(Approve)
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Basic;
                     Caption = 'Approve';
                     Image = Approve;
-                    ToolTip = 'Approve the requested changes.';
                     Promoted = true;
-                    PromotedCategory = New;
+                    PromotedCategory = Category5;
+                    PromotedIsBig = true;
                     Visible = OpenApprovalEntriesExistCurrUser;
-                    trigger OnAction()
 
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
                     begin
-                        ApprovalsMgmt.ApproveRecordApprovalRequest(Rec.RecordId);
+                        ApprovalsMgmt.ApproveRecordApprovalRequest(Rec.RecordId)
                     end;
                 }
                 action(Reject)
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Basic;
                     Caption = 'Reject';
                     Image = Reject;
-                    ToolTip = 'Reject the approval request.';
-                    Visible = OpenApprovalEntriesExistCurrUser;
                     Promoted = true;
-                    PromotedCategory = New;
+                    PromotedCategory = Category5;
+                    PromotedIsBig = true;
+                    Visible = OpenApprovalEntriesExistCurrUser;
                     trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
                     begin
-                        ApprovalsMgmt.RejectRecordApprovalRequest(Rec.RecordId);
+                        ApprovalsMgmt.RejectRecordApprovalRequest(Rec.RecordId)
                     end;
                 }
                 action(Delegate)
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Basic;
                     Caption = 'Delegate';
                     Image = Delegate;
-                    ToolTip = 'Delegate the approval to a substitute approver.';
-                    Visible = OpenApprovalEntriesExistCurrUser;
                     Promoted = true;
-                    PromotedCategory = New;
-                    trigger OnAction()
-
-                    begin
-                        ApprovalsMgmt.DelegateRecordApprovalRequest(Rec.RecordId);
-                    end;
-                }
-                action(Comment)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Comments';
-                    Image = ViewComments;
-                    ToolTip = 'View or add comments for the record.';
+                    PromotedCategory = Category5;
                     Visible = OpenApprovalEntriesExistCurrUser;
-                    Promoted = true;
-                    PromotedCategory = New;
 
                     trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
                     begin
-                        ApprovalsMgmt.GetApprovalComment(Rec);
-                    end;
-                }
-                action(Approvals)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Approvals';
-                    Image = Approvals;
-                    ToolTip = 'View approval requests.';
-                    Promoted = true;
-                    PromotedCategory = New;
-                    trigger OnAction()
-                    begin
-                        ApprovalsMgmt.OpenApprovalEntriesPage(Rec.RecordId);
+                        ApprovalsMgmt.DelegateRecordApprovalRequest(Rec.RecordId)
                     end;
                 }
             }

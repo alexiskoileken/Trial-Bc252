@@ -23,6 +23,7 @@ table 50103 Consumer
         field(4; Status; Enum "Consumer status")
         {
             DataClassification = ToBeClassified;
+            Editable=false;
         }
     }
     keys

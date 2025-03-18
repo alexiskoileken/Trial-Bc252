@@ -26,9 +26,12 @@ table 50100 "Cars Model"
             Caption = ' Engine CC';
             DataClassification = ToBeClassified;
         }
-        field(6; Status; Enum "Consumer status")
+        field(6; Status; Option)
         {
             DataClassification = ToBeClassified;
+            OptionMembers = open,"Pending Approval",Approved,Rejected;
+            OptionCaption = ' open,Pending Approval,Approved,Rejected';
+            Editable = false;
         }
 
     }
