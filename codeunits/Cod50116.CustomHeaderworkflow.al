@@ -43,6 +43,11 @@ codeunit 50116 "Custom Header workflow"
         RunWorkflowOnCancelCarsForApprovalCode: label 'RUNWORKFLOWONCANCELCARSFORAPPROVAL';
         OnCancelCarsApprovalRequestTxt: label 'An Approval of cars is cancelled';
         OnSendCarsApprovalRequestTxt: label ' An Approval of cars is requested';
+        //receipt header
+        RunWorkflowOnSendReceiptForApprovalCode: label 'RUNWORKFLOWONSENDRECEIPTFORAPPROVAL';
+        RunWorkflowOnCancelReceiptForApprovalCode: label 'RUNWORKFLOWONCANCELRECEIPTFORAPPROVAL';
+        OnCancelReceiptApprovalRequestTxt: label 'An Approval of Receipt is cancelled';
+        OnSendReceiptApprovalRequestTxt: label ' An Approval of Receipt is requested';
 
     procedure CheckApprovalsWorkflowEnabled(var variant: Variant): Boolean
     var
@@ -50,6 +55,7 @@ codeunit 50116 "Custom Header workflow"
         Std: Record Std;
         Consumer: Record Consumer;
         CarsModel: Record "Cars Model";
+        RcptHdr: Record "Receipt Header";
     begin
         RecRef.GetTable(variant);
         case RecRef.Number of
@@ -59,6 +65,8 @@ codeunit 50116 "Custom Header workflow"
                 exit(CheckApprovalsWorkflowEnabledCode(variant, RunWorkflowOnSendConsumerForApprovalCode));
             Database::"Cars Model":
                 exit(CheckApprovalsWorkflowEnabledCode(variant, RunWorkflowOnSendCarsForApprovalCode));
+            Database::"Receipt Header":
+                exit(CheckApprovalsWorkflowEnabledCode(variant, RunWorkflowOnSendReceiptForApprovalCode))
             else
                 Error(UnsupportedRecordTypeErr, RecRef.Caption);
         end
@@ -99,6 +107,9 @@ codeunit 50116 "Custom Header workflow"
 
         WorkflowEventHandling.AddEventToLibrary(RunWorkflowOnSendCarsForApprovalCode, Database::"Cars Model", OnSendCarsApprovalRequestTxt, 0, false);
         WorkflowEventHandling.AddEventToLibrary(RunWorkflowOnCancelCarsForApprovalCode, Database::"Cars Model", OnCancelCarsApprovalRequestTxt, 0, false);
+
+        WorkflowEventHandling.AddEventToLibrary(RunWorkflowOnSendReceiptForApprovalCode, Database::"Receipt Header", OnSendReceiptApprovalRequestTxt, 0, false);
+        WorkflowEventHandling.AddEventToLibrary(RunWorkflowOnCancelReceiptForApprovalCode, Database::"Receipt Header", OnCancelReceiptApprovalRequestTxt, 0, false);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Custom Header workflow", OnSendDocForApproval, '', false, false)]
@@ -115,6 +126,8 @@ codeunit 50116 "Custom Header workflow"
                 WorkflowMgt.HandleEvent(RunWorkflowOnSendConsumerForApprovalCode, Variant);
             Database::"Cars Model":
                 WorkflowMgt.HandleEvent(RunWorkflowOnSendCarsForApprovalCode, Variant);
+            Database::"Receipt Header":
+                WorkflowMgt.HandleEvent(RunWorkflowOnSendReceiptForApprovalCode, Variant);
             else
                 Error(UnsupportedRecordTypeErr, RecRef.Caption);
         end
@@ -134,6 +147,8 @@ codeunit 50116 "Custom Header workflow"
                 WorkflowMgt.HandleEvent(RunWorkflowOnCancelConsumerForApprovalCode, Variant);
             Database::"Cars Model":
                 WorkflowMgt.HandleEvent(RunWorkflowOnCancelCarsForApprovalCode, Variant);
+            Database::"Receipt Header":
+                WorkflowMgt.HandleEvent(RunWorkflowOnCancelReceiptForApprovalCode, Variant);
             else
                 Error(UnsupportedRecordTypeErr, RecRef.Caption);
         end
@@ -148,6 +163,7 @@ codeunit 50116 "Custom Header workflow"
         Std: Record Std;
         Consumer: Record Consumer;
         CarsModel: Record "Cars Model";
+        RcptHdr: Record  "Receipt Header";
     begin
         case RecRef.Number of
             database::Std:
@@ -169,6 +185,13 @@ codeunit 50116 "Custom Header workflow"
                     RecRef.SetTable(CarsModel);
                     CarsModel.Validate(Status, CarsModel.Status::Open);
                     CarsModel.Modify(true);
+                    Handled := true;
+                end;
+                 database::"Receipt Header":
+                begin
+                    RecRef.SetTable(RcptHdr);
+                  //  RcptHdr.Validate(Status, CarsModel.Status::Open);
+                    RcptHdr.Modify(true);
                     Handled := true;
                 end;
 
