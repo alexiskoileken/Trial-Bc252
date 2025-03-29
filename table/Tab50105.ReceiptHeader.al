@@ -139,6 +139,11 @@ table 50105 "Receipt Header"
         {
             Editable = false;
         }
+        field(500; Status; Enum "Consumer status")
+        {
+            DataClassification = ToBeClassified;
+            Editable = false;
+        }
 
     }
 
@@ -171,14 +176,16 @@ table 50105 "Receipt Header"
 
     trigger OnDelete()
     var
+    
         myInt: Integer;
     begin
         if Posted then
             Error('you cannot delete a posted record');
     end;
-     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20]);
+
+    procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20]);
     begin
-        DimMgt.ValidateDimValueCode(FieldNumber,ShortcutDimCode);
+        DimMgt.ValidateDimValueCode(FieldNumber, ShortcutDimCode);
         DimMgt.SaveDefaultDim(DATABASE::"Receipt Header", "Document No.", FieldNumber, ShortcutDimCode);
         MODIFY;
     end;
@@ -200,6 +207,16 @@ table 50105 "Receipt Header"
         "Dimension Set ID" :=
           DimMgt.EditDimensionSet("Dimension Set ID", STRSUBSTNO('%1 %2 %3', '', ''),
             "Global Dimension 1 Code", "Global Dimension 2 Code");
+    end;
+
+     procedure GetStatusStyleexpr(): Text
+    var
+        myInt: Integer;
+    begin
+        if Status = Status::Open then
+            exit('Favorable')
+        else
+            exit('Strong')
     end;
 
 

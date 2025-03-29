@@ -18,7 +18,6 @@ page 50112 "Receipt Card"
             group(General)
             {
                 Caption = 'General';
-                Editable = IsEditable;
 
                 field("Document No."; Rec."Document No.")
                 {
@@ -28,7 +27,6 @@ page 50112 "Receipt Card"
                     var
                         myInt: Integer;
                     begin
-
                     end;
 
                 }
@@ -176,17 +174,18 @@ page 50112 "Receipt Card"
                 {
                     ToolTip = 'Specifies the value of the Posted field.', Comment = '%';
                 }
-                field("Document Type"; Rec."Document Type")
+                field(Status; Rec.Status)
                 {
-
+                    ToolTip = 'Specifies the value of the Status field.', Comment = '%';
+                    StyleExpr = StyLexpVal;
                 }
+
             }
             part(RceiptLine; "Receipt Lines")
             {
                 SubPageLink = "Doc No" = field("Document No."),
                               "Document Type" = field("Document Type");
                 ApplicationArea = all;
-                Editable = IsEditable;
 
 
             }
@@ -240,7 +239,12 @@ page 50112 "Receipt Card"
 
                     trigger OnAction()
                     var
+                        VarVariant: Variant;
+                        CustomHdrworkflow: Codeunit "Custom Header workflow";
                     begin
+                        VarVariant := Rec;
+                        if CustomHdrworkflow.CheckApprovalsWorkflowEnabled(VarVariant) then
+                            CustomHdrworkflow.OnSendDocForApproval(VarVariant);
 
                     end;
                 }
@@ -256,9 +260,11 @@ page 50112 "Receipt Card"
 
                     trigger OnAction()
                     var
-
+                        varVariant: Variant;
+                        CustomHdrworkflow: Codeunit "Custom Header workflow";
                     begin
-                        WorkflowWebhookMgt.FindAndCancel(Rec.RecordId);
+                        varVariant := Rec;
+                        CustomHdrworkflow.OnCancelDocApprovalRequest(varVariant);
                     end;
                 }
                 action(Approvals)
@@ -275,7 +281,7 @@ page 50112 "Receipt Card"
                     var
                         WorkflowsEntriesBuffer: Record "Workflows Entries Buffer";
                     begin
-                        // WorkflowsEntriesBuffer.RunWorkflowEntriesPage(Rec.RecordId, DATABASE::"Purchase Header", "Document Type".AsInteger(), "Document No.");
+                       // WorkflowsEntriesBuffer.(Rec.RecordId, DATABASE::"Purchase Header", "Document Type".AsInteger(), "Document No.");
                     end;
                 }
                 group(Flow)
@@ -471,6 +477,7 @@ page 50112 "Receipt Card"
 
                         IF CONFIRM('Do you want to post Voucher No ' + Rec."Document No.", TRUE, TRUE) THEN BEGIN
                             CustomPostRout.PostReceiptJrnl(Rec);
+                            CurrPage.Close();
                         END;
                     end;
                 }
@@ -508,7 +515,7 @@ page 50112 "Receipt Card"
 
     trigger OnAfterGetRecord();
     begin
-
+        StyLexpVal := Rec.GetStatusStyleexpr();
     end;
 
     trigger OnNewRecord(Belowxrec: Boolean)
@@ -529,9 +536,8 @@ page 50112 "Receipt Card"
 
         WorkflowWebhookMgt.GetCanRequestAndCanCancel(Rec.RecordId, CanRequestApprovalForFlow, CanCancelApprovalForFlow);
 
-        if not rec.Posted then begin
+        if (Rec.Status = Rec.Status::Approved) and (not Rec.Posted) then begin
             PostEnabled := true;
-            IsEditable := true;
         end
 
     end;
@@ -553,6 +559,6 @@ page 50112 "Receipt Card"
         ApproveVisible: Boolean;
         PostDatePage: Page "Posting DatePage";
         CustomPostRout: codeunit "Custom posting Routine";
-        IsEditable: Boolean;
+        StyLexpVal: Text;
 }
 

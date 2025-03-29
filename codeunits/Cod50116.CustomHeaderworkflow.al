@@ -1,6 +1,8 @@
 namespace TrialVersion.TrialVersion;
 using System.Automation;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Utilities;
+using Microsoft.Finance.GeneralLedger.Posting;
 
 codeunit 50116 "Custom Header workflow"
 {
@@ -48,6 +50,10 @@ codeunit 50116 "Custom Header workflow"
         RunWorkflowOnCancelReceiptForApprovalCode: label 'RUNWORKFLOWONCANCELRECEIPTFORAPPROVAL';
         OnCancelReceiptApprovalRequestTxt: label 'An Approval of Receipt is cancelled';
         OnSendReceiptApprovalRequestTxt: label ' An Approval of Receipt is requested';
+        ReceiptApprovalWorkflowCodeTxt: TextConst ENU = 'RCPAPW';
+        ReceiptApprovalWorkfowDescTxt: TextConst ENU = 'Receipt Approval Workflow';
+        ReceiptTypeCondTxt: TextConst ENU = '<?xml version = “1.0” encoding=”utf-8” standalone=”yes”?><ReportParameters><DataItems><DataItem name="Receipt">%1</DataItem></DataItems></ReportParameters>';
+
 
     procedure CheckApprovalsWorkflowEnabled(var variant: Variant): Boolean
     var
@@ -73,7 +79,7 @@ codeunit 50116 "Custom Header workflow"
 
     end;
 
-    procedure CheckApprovalsWorkflowEnabledCode(var Variant: Variant; CheckApprovalsWorkflowTxt: Text): Boolean
+    local procedure CheckApprovalsWorkflowEnabledCode(var Variant: Variant; CheckApprovalsWorkflowTxt: Text): Boolean
     var
         RecRef: RecordRef;
         WorkflowEventHandling: Codeunit "Workflow Event Handling";
@@ -163,7 +169,7 @@ codeunit 50116 "Custom Header workflow"
         Std: Record Std;
         Consumer: Record Consumer;
         CarsModel: Record "Cars Model";
-        RcptHdr: Record  "Receipt Header";
+        RcptHdr: Record "Receipt Header";
     begin
         case RecRef.Number of
             database::Std:
@@ -187,10 +193,10 @@ codeunit 50116 "Custom Header workflow"
                     CarsModel.Modify(true);
                     Handled := true;
                 end;
-                 database::"Receipt Header":
+            database::"Receipt Header":
                 begin
                     RecRef.SetTable(RcptHdr);
-                  //  RcptHdr.Validate(Status, CarsModel.Status::Open);
+                    RcptHdr.Validate(Status, RcptHdr.Status::Open);
                     RcptHdr.Modify(true);
                     Handled := true;
                 end;
@@ -206,6 +212,7 @@ codeunit 50116 "Custom Header workflow"
         Std: Record Std;
         Consumer: Record Consumer;
         CarsModel: Record "Cars Model";
+        RcptHdr: Record "Receipt Header";
     begin
         case RecRef.Number of
             database::Std:
@@ -232,6 +239,14 @@ codeunit 50116 "Custom Header workflow"
                     Variant := CarsModel;
                     IsHandled := true;
                 end;
+            database::"Receipt Header":
+                begin
+                    RecRef.SetTable(RcptHdr);
+                    RcptHdr.Validate(Status, RcptHdr.Status::"Pending approval");
+                    RcptHdr.Modify(true);
+                    Variant := RcptHdr;
+                    IsHandled := true;
+                end;
         end;
     end;
 
@@ -243,6 +258,7 @@ codeunit 50116 "Custom Header workflow"
         Std: Record Std;
         Consumer: Record Consumer;
         CarsModel: Record "Cars Model";
+        RcptHdr: Record "Receipt Header";
     begin
         case RecRef.Number of
             database::Std:
@@ -260,6 +276,14 @@ codeunit 50116 "Custom Header workflow"
                     RecRef.SetTable(CarsModel);
                     ApprovalEntryArgument."Document No." := CarsModel.CarId;
                 end;
+            database::"Receipt Header":
+                begin
+                    RecRef.SetTable(RcptHdr);
+                    ApprovalEntryArgument."Document No." := RcptHdr."Document No.";
+                    ApprovalEntryArgument.Amount := RcptHdr."Receipt Amount";
+                    ApprovalEntryArgument."Amount (LCY)" := RcptHdr."Receipt Amount(LCY)";
+                    ApprovalEntryArgument."Currency Code" := RcptHdr."Currency Code";
+                end;
         end
     end;
 
@@ -271,6 +295,7 @@ codeunit 50116 "Custom Header workflow"
         Std: Record Std;
         Consumer: Record Consumer;
         CarsModel: Record "Cars Model";
+        RcptHdr: Record "Receipt Header";
     begin
         case RecRef.Number of
             Database::Std:
@@ -294,6 +319,13 @@ codeunit 50116 "Custom Header workflow"
                     CarsModel.Modify(true);
                     Handled := true;
                 end;
+            Database::"Receipt Header":
+                begin
+                    RecRef.SetTable(RcptHdr);
+                    RcptHdr.Validate(Status, RcptHdr.Status::Approved);
+                    RcptHdr.Modify(true);
+                    Handled := true;
+                end;
         end;
     end;
 
@@ -304,6 +336,7 @@ codeunit 50116 "Custom Header workflow"
         std: Record Std;
         Consumer: Record Consumer;
         CarsModel: Record "Cars Model";
+        RcptHdr: Record "Receipt Header";
     begin
         case ApprovalEntry."Table ID" of
             database::Std:
@@ -327,6 +360,30 @@ codeunit 50116 "Custom Header workflow"
                         CarsModel.Modify(true)
                     end
                 end;
+            database::"Receipt Header":
+                begin
+                    if RcptHdr.Get(ApprovalEntry."Document No.") then begin
+                        RcptHdr.Validate(Status, RcptHdr.Status::Open);
+                        RcptHdr.Modify(true)
+                    end
+                end;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", OnAfterGetPageID, '', false, false)]
+    local procedure OnAfterGetPageID(var RecordRef: RecordRef; var PageID: Integer)
+    begin
+        if PageID = 0 then
+            PageID := GetDefaultCardPageID(RecordRef);
+    end;
+
+    local procedure GetDefaultCardPageID(RecRef: RecordRef): Integer
+    var
+        myInt: Integer;
+    begin
+        case RecRef.Number of
+            database::"Receipt Header":
+                exit(Page::"Receipt Card")
         end;
     end;
 
@@ -347,6 +404,7 @@ codeunit 50116 "Custom Header workflow"
         WorkflowSetup.InsertTableRelation(Database::Std, 0, Database::"Approval Entry", ApprovalEntry.FieldNo("Record ID to Approve"));
         WorkflowSetup.InsertTableRelation(Database::Consumer, 0, Database::"Approval Entry", ApprovalEntry.FieldNo("Record ID to Approve"));
         WorkflowSetup.InsertTableRelation(Database::"Cars Model", 0, Database::"Approval Entry", ApprovalEntry.FieldNo("Record ID to Approve"));
+        WorkflowSetup.InsertTableRelation(Database::"Receipt Header", 0, Database::"Approval Entry", ApprovalEntry.FieldNo("Record ID to Approve"));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Setup", OnInsertWorkflowTemplates, '', false, false)]
@@ -355,6 +413,7 @@ codeunit 50116 "Custom Header workflow"
         InsertStdWorkflowTemplates();
         InsertConsumerWorkflowTemplates();
         InsertCarsWorkflowTemplates();
+        InsertReceiptWorkflowTemplates();
     end;
 
     local procedure InsertStdWorkflowTemplates()
@@ -381,6 +440,15 @@ codeunit 50116 "Custom Header workflow"
     begin
         WorkflowSetup.InsertWorkflowTemplate(Workflow, CarsApprovalWorkflowCodeTxt, CarsApprovalWorkfowDescTxt, WorkflowCategoryCode);
         InsertCarsApprovalWorkflowDetails(Workflow);
+        WorkflowSetup.MarkWorkflowAsTemplate(Workflow);
+    end;
+
+    local procedure InsertReceiptWorkflowTemplates()
+    var
+        Workflow: Record Workflow;
+    begin
+        WorkflowSetup.InsertWorkflowTemplate(Workflow, ReceiptApprovalWorkflowCodeTxt, ReceiptApprovalWorkfowDescTxt, WorkflowCategoryCode);
+        InsertReceiptApprovalWorkflowDetails(Workflow);
         WorkflowSetup.MarkWorkflowAsTemplate(Workflow);
     end;
 
@@ -424,6 +492,18 @@ codeunit 50116 "Custom Header workflow"
         WorkflowSetup.InsertDocApprovalWorkflowSteps(Workflow, BuildConsumerTypeConditions(Consumer.Status::Open), RunWorkflowOnSendConsumerForApprovalCode, BuildConsumerTypeConditions(Consumer.Status::"Pending approval"), RunWorkflowOnCancelConsumerForApprovalCode, WorkflowStepArgument, true);
     end;
 
+    local procedure InsertReceiptApprovalWorkflowDetails(var Workflow: Record Workflow)
+    var
+        WorkflowStepArgument: Record "Workflow Step Argument";
+        BlankDateFormula: DateFormula;
+        Consumer: Record Consumer;
+    begin
+        WorkflowSetup.InitWorkflowStepArgument(WorkflowStepArgument, WorkflowStepArgument."Approver Type"::Approver, WorkflowStepArgument."Approver Limit Type"::"Direct Approver",
+        0, '', BlankDateFormula, true);
+
+        WorkflowSetup.InsertDocApprovalWorkflowSteps(Workflow, BuildReceiptModelTypeConditions(Consumer.Status::Open), RunWorkflowOnSendReceiptForApprovalCode, BuildReceiptModelTypeConditions(Consumer.Status::"Pending approval"), RunWorkflowOnCancelReceiptForApprovalCode, WorkflowStepArgument, true);
+    end;
+
     procedure BuildStdTypeConditions(StatusParam: Enum "Consumer status"): Text
     var
         Std: Record Std;
@@ -448,5 +528,12 @@ codeunit 50116 "Custom Header workflow"
         exit(StrSubstNo(CarsTypeCondTxt, WorkflowSetup.Encode(CarsModel.GetView(false))));
     end;
 
+    procedure BuildReceiptModelTypeConditions(StatusParam: Enum "Consumer status"): Text
+    var
+        RcptHdr: Record "Receipt Header";
+    begin
+        RcptHdr.SetRange(Status, StatusParam);
+        exit(StrSubstNo(CarsTypeCondTxt, WorkflowSetup.Encode(RcptHdr.GetView(false))));
+    end;
 
 }

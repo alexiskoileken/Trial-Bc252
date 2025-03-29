@@ -40,7 +40,21 @@ page 50114 "Receipt list"
                 {
                     ToolTip = 'Specifies the value of the Created Time field.', Comment = '%';
                 }
+                field(Status; Rec.Status)
+                {
+                    ToolTip = 'Specifies the value of the Status field.', Comment = '%';
+                    StyleExpr = Styleval;
+                }
             }
         }
     }
+    trigger OnAfterGetRecord()
+    var
+        myInt: Integer;
+    begin
+        Styleval := Rec.GetStatusStyleexpr()
+    end;
+
+    var
+        Styleval: Text;
 }

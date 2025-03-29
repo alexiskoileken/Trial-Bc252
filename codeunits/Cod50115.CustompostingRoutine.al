@@ -31,7 +31,8 @@ codeunit 50115 "Custom posting Routine"
         GenJnlLn.SetRange("Journal Template Name", JTemplate);
         GenJnlLn.SetRange("Journal Batch Name", Jbatch);
         if GenJnlLn.FindFirst() then begin
-            Codeunit.Run(Codeunit::"Gen. Jnl.-Post Batch", GenJnlLn);
+            Codeunit.Run(Codeunit::"Gen. Jnl.-Post Batch"
+            , GenJnlLn);
             ok := true;
         end;
         exit(Ok)

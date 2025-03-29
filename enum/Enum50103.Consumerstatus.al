@@ -3,20 +3,20 @@ namespace TrialVersion.TrialVersion;
 enum 50103 "Consumer status"
 {
     Extensible = true;
-    
-    value(1; Open)
+
+    value(0; Open)
     {
         Caption = 'Open';
     }
-    value(2; "Pending approval")
+    value(1; "Pending approval")
     {
         Caption = 'Pending approval';
     }
-    value(3; Approved)
+    value(2; Approved)
     {
         Caption = 'Approved';
     }
-    value(4; Rejected)
+    value(3; Rejected)
     {
         Caption = 'Rejected';
     }

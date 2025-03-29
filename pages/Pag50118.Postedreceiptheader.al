@@ -11,6 +11,7 @@ page 50118 "Posted receipt header"
     ModifyAllowed = false;
     SourceTableView = where(Posted = const(true));
     UsageCategory = History;
+    CardPageId = "Receipt Card";
 
     layout
     {
